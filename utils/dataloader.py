@@ -14,6 +14,7 @@ class TrainDataset(data.Dataset):
         self.input_shape = input_shape
         self.lines = lines
         self.random = random
+        self.y_max = 0
         for line in self.lines:
             self.y_max = max(line.split(';')[0], self.y_max)
 

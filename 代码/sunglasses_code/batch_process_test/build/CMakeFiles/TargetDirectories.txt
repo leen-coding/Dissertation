@@ -1,8 +1,0 @@
-/home/xurui/sunglasses_temp_task/batch_process_test/build/CMakeFiles/rebuild_cache.dir
-/home/xurui/sunglasses_temp_task/batch_process_test/build/CMakeFiles/edit_cache.dir
-/home/xurui/sunglasses_temp_task/batch_process_test/build/CMakeFiles/main.dir
-/home/xurui/sunglasses_temp_task/batch_process_test/build/dlib_build/CMakeFiles/edit_cache.dir
-/home/xurui/sunglasses_temp_task/batch_process_test/build/dlib_build/CMakeFiles/rebuild_cache.dir
-/home/xurui/sunglasses_temp_task/batch_process_test/build/dlib_build/dlib/CMakeFiles/edit_cache.dir
-/home/xurui/sunglasses_temp_task/batch_process_test/build/dlib_build/dlib/CMakeFiles/rebuild_cache.dir
-/home/xurui/sunglasses_temp_task/batch_process_test/build/dlib_build/dlib/CMakeFiles/dlib.dir

@@ -2,7 +2,7 @@ import os
 
 if __name__ == "__main__":
 
-    datasets_path = "D:\\Files\\arcface-pytorch\\datasets"
+    datasets_path = "/content/web1o2"
 
     types_name = os.listdir(datasets_path)
 

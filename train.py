@@ -156,8 +156,9 @@ if __name__ == "__main__":
     # ------------------------------------------------------------------#
     #   LFW评估数据集的文件路径和对应的txt文件
     # ------------------------------------------------------------------#
-    lfw_dir_path = "D:\\Files\\arcface-pytorch\\ROF\\combined"
-    lfw_pairs_path = "D:\\Files\\arcface-pytorch\\ROF\\ROFCombine_m_un_pairs_clean.txt"
+    lfw_dir_path = "/content/combined"
+    lfw_pairs_path = "/content/Dissertation/ROFCombine_m_un_pairs_clean.txt"
+
 
     # ------------------------------------------------------#
     #   设置用到的显卡
