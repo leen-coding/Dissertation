@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<sunglasses type_id="opencv-matrix">
+  <rows>2</rows>
+  <cols>12</cols>
+  <dt>f</dt>
+  <data>
+    99. 140. 211. 274. 228. 108. 326. 376. 453. 503. 500. 374. 
+    282. 233. 219. 260. 333. 344. 259. 220. 227. 276. 339. 328.
+  </data>
+</sunglasses>
+</opencv_storage>

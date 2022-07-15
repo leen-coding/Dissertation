@@ -1,0 +1,55 @@
+Determining if the pthread_create exist failed with the following output:
+Change Dir: /home/xurui/sunglasses_temp_task/batch_process_test/build/dlib_build/dlib/cudnn_test_build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_a024e/fast"
+/usr/bin/make -f CMakeFiles/cmTC_a024e.dir/build.make CMakeFiles/cmTC_a024e.dir/build
+make[1]: Entering directory '/home/xurui/sunglasses_temp_task/batch_process_test/build/dlib_build/dlib/cudnn_test_build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_a024e.dir/CheckSymbolExists.c.o
+/usr/bin/cc    -fPIC    -o CMakeFiles/cmTC_a024e.dir/CheckSymbolExists.c.o   -c /home/xurui/sunglasses_temp_task/batch_process_test/build/dlib_build/dlib/cudnn_test_build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_a024e
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a024e.dir/link.txt --verbose=1
+/usr/bin/cc  -fPIC     CMakeFiles/cmTC_a024e.dir/CheckSymbolExists.c.o  -o cmTC_a024e -rdynamic 
+CMakeFiles/cmTC_a024e.dir/CheckSymbolExists.c.o：在函数‘main’中：
+CheckSymbolExists.c:(.text+0x1b)：对‘pthread_create’未定义的引用
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_a024e.dir/build.make:97: recipe for target 'cmTC_a024e' failed
+make[1]: *** [cmTC_a024e] Error 1
+make[1]: Leaving directory '/home/xurui/sunglasses_temp_task/batch_process_test/build/dlib_build/dlib/cudnn_test_build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_a024e/fast' failed
+make: *** [cmTC_a024e/fast] Error 2
+
+File /home/xurui/sunglasses_temp_task/batch_process_test/build/dlib_build/dlib/cudnn_test_build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_create
+  return ((int*)(&pthread_create))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /home/xurui/sunglasses_temp_task/batch_process_test/build/dlib_build/dlib/cudnn_test_build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_cbb37/fast"
+/usr/bin/make -f CMakeFiles/cmTC_cbb37.dir/build.make CMakeFiles/cmTC_cbb37.dir/build
+make[1]: Entering directory '/home/xurui/sunglasses_temp_task/batch_process_test/build/dlib_build/dlib/cudnn_test_build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_cbb37.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -fPIC -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_cbb37.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_cbb37
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_cbb37.dir/link.txt --verbose=1
+/usr/bin/cc  -fPIC -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTC_cbb37.dir/CheckFunctionExists.c.o  -o cmTC_cbb37 -rdynamic -lpthreads 
+/usr/bin/ld: 找不到 -lpthreads
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_cbb37.dir/build.make:97: recipe for target 'cmTC_cbb37' failed
+make[1]: *** [cmTC_cbb37] Error 1
+make[1]: Leaving directory '/home/xurui/sunglasses_temp_task/batch_process_test/build/dlib_build/dlib/cudnn_test_build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_cbb37/fast' failed
+make: *** [cmTC_cbb37/fast] Error 2
+
+

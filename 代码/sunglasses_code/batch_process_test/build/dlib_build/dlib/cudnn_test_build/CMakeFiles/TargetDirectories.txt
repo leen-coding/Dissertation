@@ -1,0 +1,3 @@
+/home/xurui/sunglasses_temp_task/batch_process_test/build/dlib_build/dlib/cudnn_test_build/CMakeFiles/rebuild_cache.dir
+/home/xurui/sunglasses_temp_task/batch_process_test/build/dlib_build/dlib/cudnn_test_build/CMakeFiles/edit_cache.dir
+/home/xurui/sunglasses_temp_task/batch_process_test/build/dlib_build/dlib/cudnn_test_build/CMakeFiles/cudnn_test.dir
