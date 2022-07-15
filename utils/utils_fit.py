@@ -27,32 +27,33 @@ def fit_one_epoch(model_train, model, loss_history, optimizer, epoch, epoch_step
     for iteration, batch in enumerate(gen):
         if iteration >= epoch_step:
             break
-        images_up, images_down, labels = batch
+        images_up, images_down, labels_up,labels_down = batch
 
         with torch.no_grad():
             if cuda:
 
                 images_up = images_up.cuda(local_rank)
                 images_down = images_down.cuda(local_rank)
-                labels = labels.cuda(local_rank)
+                labels_up = labels_up.cuda(local_rank)
+                labels_down = labels_down.cuda(local_rank)
 
         # ----------------------#
         #   清零梯度
         # ----------------------#
         optimizer.zero_grad()
         if not fp16:
-            outputs_up = model_train(images_up, labels, mode="train")
-            outputs_down = model_train(images_down, labels, mode="train")
-            loss_up = nn.NLLLoss()(F.log_softmax(outputs_up, -1), labels)
-            loss_down = nn.NLLLoss()(F.log_softmax(outputs_down, -1), labels)
+            outputs_up = model_train(images_up, mode="train")
+            outputs_down = model_train(images_down, mode="train")
+            loss_up = nn.NLLLoss()(F.log_softmax(outputs_up, -1), labels_up)
+            loss_down = nn.NLLLoss()(F.log_softmax(outputs_down, -1), labels_down)
             loss = loss_up+loss_down
             loss.backward()
             optimizer.step()
         else:
             from torch.cuda.amp import autocast
             with autocast():
-                outputs = model_train(images_up, labels, mode="train")
-                loss = nn.NLLLoss()(F.log_softmax(outputs, -1), labels)
+                outputs = model_train(images_up, labels_up, mode="train")
+                loss = nn.NLLLoss()(F.log_softmax(outputs, -1), labels_up)
             # ----------------------#
             #   反向传播
             # ----------------------#
