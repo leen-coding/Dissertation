@@ -19,7 +19,7 @@ class LossHistory():
         os.makedirs(self.log_dir)
         self.writer     = SummaryWriter(self.log_dir)
         dummy_input     = torch.randn(2, 3, input_shape[0], input_shape[1])
-        self.writer.add_graph(model, dummy_input)
+        self.writer.add_graph(model, (dummy_input,dummy_input))
 
     def append_loss(self, epoch, acc, loss, val_loss):
         if not os.path.exists(self.log_dir):

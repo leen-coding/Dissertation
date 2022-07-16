@@ -14,9 +14,9 @@ class TrainDataset(data.Dataset):
         self.input_shape = input_shape
         self.lines = lines
         self.random = random
-        self.y_max = 0
-        for line in self.lines:
-            self.y_max = max(int(line.split(';')[0]), self.y_max)
+        # self.y_max = 0
+        # for line in self.lines:
+        #     self.y_max = max(int(line.split(';')[0]), self.y_max)
 
     def __len__(self):
         return len(self.lines)
@@ -27,7 +27,7 @@ class TrainDataset(data.Dataset):
     def __getitem__(self, index):
         annotation_path = self.lines[index].split(';')[1].strip()
         y_up = int(self.lines[index].split(';')[0])
-        y_down = y_up+self.y_max+1
+        # y_down = y_up+self.y_max+1
         image = cvtColor(Image.open(annotation_path))
         # ------------------------------------------#
         #   翻转图像
@@ -42,24 +42,24 @@ class TrainDataset(data.Dataset):
         crop_img_up = np.transpose(preprocess_input(np.array(crop_img_up, dtype='float32')), (2, 0, 1))
         crop_img_down = np.transpose(preprocess_input(np.array(crop_img_down, dtype='float32')), (2, 0, 1))
 
-        return crop_img_up, crop_img_down, y_up,y_down
+        return crop_img_up, crop_img_down, y_up
 
 
 def dataset_collate(batch):
     images_up = []
     images_down = []
     targets_up = []
-    targets_down = []
-    for image_up, image_down, y_up,y_down in batch:
+    # targets_down = []
+    for image_up, image_down, y_up in batch:
         images_up.append(image_up)
         images_down.append(image_down)
         targets_up.append(y_up)
-        targets_down.append(y_down)
+        # targets_down.append(y_down)
     images_up = torch.from_numpy(np.array(images_up)).type(torch.FloatTensor)
     images_down = torch.from_numpy(np.array(images_down)).type(torch.FloatTensor)
     targets_up = torch.from_numpy(np.array(targets_up)).long()
-    targets_down = torch.from_numpy(np.array(targets_down)).long()
-    return images_up, images_down, targets_up,targets_down
+    # targets_down = torch.from_numpy(np.array(targets_down)).long()
+    return images_up, images_down, targets_up
 
 
 class ValDataset(data.Dataset):
