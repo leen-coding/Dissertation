@@ -123,19 +123,19 @@ def fit_one_epoch(model_train, model, loss_history, optimizer, epoch, epoch_step
         if iteration >= epoch_step_val:
             break
 
-        images_up, images_down,labels = batch
+        images_up, images_down,labels_up, labels_down = batch
         with torch.no_grad():
             if cuda:
                 images_up = images_up.cuda(local_rank)
                 images_down = images_down.cuda(local_rank)
 
-                labels = labels.cuda(local_rank)
-
+                labels_up = labels_up.cuda(local_rank)
+                labels_down = labels_down.cuda(local_rank)
             optimizer.zero_grad()
-            outputs_up = model_train(images_up, labels, mode="train")
-            outputs_down = model_train(images_down, labels, mode="train")
-            loss_up = nn.NLLLoss()(F.log_softmax(outputs_up, -1), labels)
-            loss_down = nn.NLLLoss()(F.log_softmax(outputs_down, -1), labels)
+            outputs_up = model_train(images_up, labels_up, mode="train")
+            outputs_down = model_train(images_down, labels_down, mode="train")
+            loss_up = nn.NLLLoss()(F.log_softmax(outputs_up, -1), labels_up)
+            loss_down = nn.NLLLoss()(F.log_softmax(outputs_down, -1), labels_down)
             loss = loss_up+loss_down
 
             # accuracy = torch.mean((torch.argmax(F.softmax(outputs, dim=-1), dim=-1) == labels).type(torch.FloatTensor))
