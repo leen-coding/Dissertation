@@ -16,7 +16,7 @@ def fit_one_epoch(model_train, model, loss_history, optimizer, epoch, epoch_step
     global pbar, best_threshold
     total_loss = 0
     total_accuracy = 0
-    accuracy = 0
+    accuracy  = 0
     val_total_loss = 0
     val_total_accuracy = 0
 
