@@ -123,14 +123,14 @@ def fit_one_epoch(model_train, model, loss_history, optimizer, epoch, epoch_step
         if iteration >= epoch_step_val:
             break
 
-        images_up, images_down,labels_up, labels_down = batch
+        images_up, images_down,labels_up = batch
         with torch.no_grad():
             if cuda:
                 images_up = images_up.cuda(local_rank)
                 images_down = images_down.cuda(local_rank)
 
                 labels_up = labels_up.cuda(local_rank)
-                labels_down = labels_down.cuda(local_rank)
+                # labels_down = labels_down.cuda(local_rank)
             optimizer.zero_grad()
             outputs_up,outputs_down = model_train(images_up, images_down,labels_up, mode="train")
             # outputs_down = model_train(images_down, labels_down, mode="train")
@@ -162,8 +162,9 @@ def fit_one_epoch(model_train, model, loss_history, optimizer, epoch, epoch_step
                 if cuda:
                     crop_img1_up, crop_img1_down, crop_img2_up,crop_img2_down= crop_img1_up.cuda(local_rank), crop_img1_down.cuda(local_rank),crop_img2_up.cuda(local_rank),crop_img2_down.cuda(local_rank)
 
-                out_crop_img1_up, out_crop_img1_down,crop_img2_up,crop_img2_down = model_train(crop_img1_up), model_train(crop_img1_down),model_train(crop_img2_up),model_train(crop_img2_down)
-                dists = torch.min(torch.sqrt(torch.sum((out_crop_img1_up - crop_img2_up) ** 2, 1)),torch.sqrt(torch.sum((out_crop_img1_down - crop_img2_down) ** 2, 1)))
+                out_crop_img1_up, out_crop_img1_down = model_train(crop_img1_up,crop_img1_down)
+                out_crop_img2_up, out_crop_img2_down  = model_train(crop_img2_up,crop_img2_down)
+                dists = torch.min(torch.sqrt(torch.sum((out_crop_img1_up - out_crop_img2_up) ** 2, 1)),torch.sqrt(torch.sum((out_crop_img1_down - out_crop_img2_down) ** 2, 1)))
             distances.append(dists.data.cpu().numpy())
             labels.append(label.data.cpu().numpy())
 

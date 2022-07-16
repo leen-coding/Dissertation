@@ -88,7 +88,9 @@ class MobileFaceNet(Module):
         self.last_bn    = nn.BatchNorm2d(embedding_size)
   
         self._initialize_weights()
-        self.stage1 = nn.Sequential(self.conv1,self.conv2_dw, self.conv_23,self.conv_3,self.conv_34,self.conv_4,self.conv_45,self.conv_5)
+        self.stage11 = nn.Sequential(self.conv1,self.conv2_dw, self.conv_23,self.conv_3,self.conv_34,self.conv_4,self.conv_45,self.conv_5)
+        self.stage12 = nn.Sequential(self.conv1, self.conv2_dw, self.conv_23, self.conv_3, self.conv_34, self.conv_4,
+                                     self.conv_45, self.conv_5)
         self.stage21 = nn.Sequential(self.sep,self.sep_bn,self.prelu,self.GDC_dw,self.GDC_bn,self.features,self.last_bn)
         self.stage22 = nn.Sequential(self.sep,self.sep_bn,self.prelu,self.GDC_dw,self.GDC_bn,self.features,self.last_bn)
     def _initialize_weights(self):
@@ -106,9 +108,9 @@ class MobileFaceNet(Module):
                     m.bias.data.zero_()
                     
     def forward(self, x1, x2):
-        x1 = self.stage1(x1)
+        x1 = self.stage11(x1)
         x1 = self.stage21(x1)
-        x2 = self.stage1(x2)
+        x2 = self.stage12(x2)
         x2 = self.stage22(x2)
         # x = self.conv1(x)
         # x = self.conv2_dw(x)
