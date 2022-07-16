@@ -27,7 +27,7 @@ def fit_one_epoch(model_train, model, loss_history, optimizer, epoch, epoch_step
     for iteration, batch in enumerate(gen):
         if iteration >= epoch_step:
             break
-        images_up, images_down, labels_up,labels_down = batch
+        images_up, images_down, labels_up, labels_down = batch
 
         with torch.no_grad():
             if cuda:
@@ -42,8 +42,8 @@ def fit_one_epoch(model_train, model, loss_history, optimizer, epoch, epoch_step
         # ----------------------#
         optimizer.zero_grad()
         if not fp16:
-            outputs_up = model_train(images_up, mode="train")
-            outputs_down = model_train(images_down, mode="train")
+            outputs_up = model_train(images_up,labels_up, mode="train")
+            outputs_down = model_train(images_down,labels_up, mode="train")
             loss_up = nn.NLLLoss()(F.log_softmax(outputs_up, -1), labels_up)
             loss_down = nn.NLLLoss()(F.log_softmax(outputs_down, -1), labels_down)
             loss = loss_up+loss_down

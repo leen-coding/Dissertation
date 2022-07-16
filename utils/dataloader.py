@@ -42,7 +42,7 @@ class TrainDataset(data.Dataset):
         crop_img_up = np.transpose(preprocess_input(np.array(crop_img_up, dtype='float32')), (2, 0, 1))
         crop_img_down = np.transpose(preprocess_input(np.array(crop_img_down, dtype='float32')), (2, 0, 1))
 
-        return crop_img_up, crop_img_down, y_up, y_down
+        return crop_img_up, crop_img_down, y_up,y_down
 
 
 def dataset_collate(batch):
@@ -59,7 +59,7 @@ def dataset_collate(batch):
     images_down = torch.from_numpy(np.array(images_down)).type(torch.FloatTensor)
     targets_up = torch.from_numpy(np.array(targets_up)).long()
     targets_down = torch.from_numpy(np.array(targets_down)).long()
-    return images_up, images_down, targets_up, targets_down
+    return images_up, images_down, targets_up,targets_down
 
 
 class ValDataset(data.Dataset):

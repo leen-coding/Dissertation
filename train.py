@@ -109,7 +109,7 @@ if __name__ == "__main__":
     # ------------------------------------------------------#
     Init_Epoch = 0
     Epoch = 50
-    batch_size = 128
+    batch_size = 8
 
     # ------------------------------------------------------------------#
     #   其它训练参数：学习率、优化器、学习率下降有关
@@ -156,8 +156,8 @@ if __name__ == "__main__":
     # ------------------------------------------------------------------#
     #   LFW评估数据集的文件路径和对应的txt文件
     # ------------------------------------------------------------------#
-    lfw_dir_path = "/content/combined"
-    lfw_pairs_path = "/content/Dissertation/ROFCombine_m_un_pairs_clean.txt"
+    lfw_dir_path = "D:\\Files\\arcface-pytorch\\ROF\\combined"
+    lfw_pairs_path = "D:\\Files\\arcface-pytorch\\ROF\\Combine_pairs_clean.txt"
 
 
     # ------------------------------------------------------#
@@ -177,7 +177,7 @@ if __name__ == "__main__":
         local_rank = 0
         rank = 0
 
-    num_classes = get_num_classes(annotation_path)
+    num_classes = get_num_classes(annotation_path)*2
     # ---------------------------------#
     #   载入模型并加载预训练权重
     # ---------------------------------#
