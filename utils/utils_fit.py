@@ -164,7 +164,7 @@ def fit_one_epoch(model_train, model, loss_history, optimizer, epoch, epoch_step
 
                 out_crop_img1_up, out_crop_img1_down = model_train(crop_img1_up,crop_img1_down)
                 out_crop_img2_up, out_crop_img2_down  = model_train(crop_img2_up,crop_img2_down)
-                dists = torch.min(torch.sqrt(torch.sum((out_crop_img1_up - out_crop_img2_up) ** 2, 1)),torch.sqrt(torch.sum((out_crop_img1_down - out_crop_img2_down) ** 2, 1)))
+                dists = torch.sqrt(torch.sum((out_crop_img1_up - out_crop_img2_up) ** 2, 1))+torch.sqrt(torch.sum((out_crop_img1_down - out_crop_img2_down) ** 2, 1))
             distances.append(dists.data.cpu().numpy())
             labels.append(label.data.cpu().numpy())
 
