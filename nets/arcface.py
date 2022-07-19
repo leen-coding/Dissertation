@@ -51,15 +51,20 @@ class Arcface(nn.Module):
         if mode == "train":
             self.head = Arcface_Head(embedding_size=embedding_size, num_classes=num_classes, s=s)
 
-    def forward(self, x1, x2, y = None, mode = "predict"):
-        x1, x2 = self.arcface(x1,x2)
-        x1 = x1.view(x1.size()[0], -1)
-        x1 = F.normalize(x1)
-        x2 = x2.view(x2.size()[0], -1)
-        x2 = F.normalize(x2)
+    def forward(self, x, y = None, mode = "predict"):
+        x = self.arcface(x)
+
+        x = x.view(x.size()[0], -1)
+        x = F.normalize(x)
+
         if mode == "predict":
-            return x1, x2
+            return x
         else:
-            x1 = self.head(x1, y)
-            x2 = self.head(x2, y)
-            return x1, x2
+            x = self.head(x, y)
+            return x
+if __name__ == "__main__":
+    model =Arcface(num_classes=128, backbone="mobilefacenet")
+
+    x = torch.zeros([2,3,112,112])
+    out = model(x)
+    print("test")

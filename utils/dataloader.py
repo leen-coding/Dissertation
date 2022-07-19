@@ -1,5 +1,6 @@
 import os
 import random
+
 import numpy as np
 import torch
 import torch.utils.data as data
@@ -14,9 +15,6 @@ class TrainDataset(data.Dataset):
         self.input_shape = input_shape
         self.lines = lines
         self.random = random
-        # self.y_max = 0
-        # for line in self.lines:
-        #     self.y_max = max(int(line.split(';')[0]), self.y_max)
 
     def __len__(self):
         return len(self.lines)
@@ -26,40 +24,29 @@ class TrainDataset(data.Dataset):
 
     def __getitem__(self, index):
         annotation_path = self.lines[index].split(';')[1].strip()
-        y_up = int(self.lines[index].split(';')[0])
-        # y_down = y_up+self.y_max+1
+        y = int(self.lines[index].split(';')[0])
+
         image = cvtColor(Image.open(annotation_path))
         # ------------------------------------------#
         #   翻转图像
         # ------------------------------------------#
         if self.rand() < .5 and self.random:
             image = image.transpose(Image.FLIP_LEFT_RIGHT)
-        image = resize_image(image, [self.input_shape[0], self.input_shape[1]], letterbox_image=True)
-        ratio_down = 0.5
-        upper_size = int(self.input_shape[1] * (1 - ratio_down))
-        crop_img_up = image.crop((0, 0, self.input_shape[0], upper_size))
-        crop_img_down = image.crop((0, upper_size, 112, 224))
-        crop_img_up = np.transpose(preprocess_input(np.array(crop_img_up, dtype='float32')), (2, 0, 1))
-        crop_img_down = np.transpose(preprocess_input(np.array(crop_img_down, dtype='float32')), (2, 0, 1))
+        image = resize_image(image, [self.input_shape[1], self.input_shape[0]], letterbox_image=True)
 
-        return crop_img_up, crop_img_down, y_up
+        image = np.transpose(preprocess_input(np.array(image, dtype='float32')), (2, 0, 1))
+        return image, y
 
 
 def dataset_collate(batch):
-    images_up = []
-    images_down = []
-    targets_up = []
-    # targets_down = []
-    for image_up, image_down, y_up in batch:
-        images_up.append(image_up)
-        images_down.append(image_down)
-        targets_up.append(y_up)
-        # targets_down.append(y_down)
-    images_up = torch.from_numpy(np.array(images_up)).type(torch.FloatTensor)
-    images_down = torch.from_numpy(np.array(images_down)).type(torch.FloatTensor)
-    targets_up = torch.from_numpy(np.array(targets_up)).long()
-    # targets_down = torch.from_numpy(np.array(targets_down)).long()
-    return images_up, images_down, targets_up
+    images = []
+    targets = []
+    for image, y in batch:
+        images.append(image)
+        targets.append(y)
+    images = torch.from_numpy(np.array(images)).type(torch.FloatTensor)
+    targets = torch.from_numpy(np.array(targets)).long()
+    return images, targets
 
 
 class ValDataset(data.Dataset):
@@ -173,21 +160,13 @@ class TestDataset(datasets.ImageFolder):
         (path_1, path_2, issame) = self.validation_images[index]
         image1, image2 = Image.open(path_1), Image.open(path_2)
 
-        image1 = resize_image(image1, [self.image_size[0], self.image_size[1]], letterbox_image=True)
-        image2 = resize_image(image2, [self.image_size[0], self.image_size[1]], letterbox_image=True)
-        ratio_down = 0.5
-        upper_size = int(self.image_size[1] * (1 - ratio_down))
-        crop_img1_up = image1.crop((0, 0, self.image_size[0], upper_size))
-        crop_img1_down = image1.crop((0, upper_size, 112, 224))
-        crop_img2_up = image2.crop((0, 0, self.image_size[0], upper_size))
-        crop_img2_down = image2.crop((0, upper_size, 112, 224))
-        crop_img1_up, crop_img1_down, crop_img2_up, crop_img2_down = np.transpose(
-            preprocess_input(np.array(crop_img1_up, np.float32)), [2, 0, 1]), np.transpose(
-            preprocess_input(np.array(crop_img1_down, np.float32)), [2, 0, 1]), np.transpose(
-            preprocess_input(np.array(crop_img2_up, np.float32)), [2, 0, 1]), np.transpose(
-            preprocess_input(np.array(crop_img2_down, np.float32)), [2, 0, 1])
+        image1 = resize_image(image1, [self.image_size[1], self.image_size[0]], letterbox_image=True)
+        image2 = resize_image(image2, [self.image_size[1], self.image_size[0]], letterbox_image=True)
 
-        return crop_img1_up, crop_img1_down, crop_img2_up, crop_img2_down, issame
+        image1, image2 = np.transpose(preprocess_input(np.array(image1, np.float32)), [2, 0, 1]), \
+                         np.transpose(preprocess_input(np.array(image2, np.float32)), [2, 0, 1])
+
+        return image1, image2, issame
 
     def __len__(self):
         return len(self.validation_images)

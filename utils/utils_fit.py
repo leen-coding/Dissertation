@@ -13,10 +13,9 @@ from .utils_metrics import evaluate, test
 
 def fit_one_epoch(model_train, model, loss_history, optimizer, epoch, epoch_step, epoch_step_val, gen, gen_val_loss,
                   Epoch, cuda, test_loader, lfw_eval_flag, fp16, scaler, save_period, save_dir, local_rank=0):
-    global pbar, best_threshold
     total_loss = 0
     total_accuracy = 0
-    accuracy  = 0
+
     val_total_loss = 0
     val_total_accuracy = 0
 
@@ -27,32 +26,26 @@ def fit_one_epoch(model_train, model, loss_history, optimizer, epoch, epoch_step
     for iteration, batch in enumerate(gen):
         if iteration >= epoch_step:
             break
-        images_up, images_down, labels = batch
-
+        images, labels = batch
         with torch.no_grad():
             if cuda:
-
-                images_up = images_up.cuda(local_rank)
-                images_down = images_down.cuda(local_rank)
+                images = images.cuda(local_rank)
                 labels = labels.cuda(local_rank)
-
 
         # ----------------------#
         #   清零梯度
         # ----------------------#
         optimizer.zero_grad()
         if not fp16:
-            outputs_up,outputs_down = model_train(images_up,images_down,labels, mode="train")
-            # outputs_down = model_train(images_down,labels_up, mode="train")
-            loss_up = nn.NLLLoss()(F.log_softmax(outputs_up, -1), labels)
-            loss_down = nn.NLLLoss()(F.log_softmax(outputs_down, -1), labels)
-            loss = loss_up+loss_down
+            outputs = model_train(images, labels, mode="train")
+            loss = nn.NLLLoss()(F.log_softmax(outputs, -1), labels)
+
             loss.backward()
             optimizer.step()
         else:
             from torch.cuda.amp import autocast
             with autocast():
-                outputs = model_train(images_up, labels, mode="train")
+                outputs = model_train(images, labels, mode="train")
                 loss = nn.NLLLoss()(F.log_softmax(outputs, -1), labels)
             # ----------------------#
             #   反向传播
@@ -67,11 +60,11 @@ def fit_one_epoch(model_train, model, loss_history, optimizer, epoch, epoch_step
         total_loss += loss.item()
         # total_accuracy  += accuracy.item()
 
-
-        pbar.set_postfix(**{'total_loss': total_loss / (iteration + 1),
-                            # 'accuracy'  : total_accuracy / (iteration + 1),
-                            'lr': get_lr(optimizer)})
-        pbar.update(1)
+        if local_rank == 0:
+            pbar.set_postfix(**{'total_loss': total_loss / (iteration + 1),
+                                # 'accuracy'  : total_accuracy / (iteration + 1),
+                                'lr': get_lr(optimizer)})
+            pbar.update(1)
 
     # 计算验证集acc
     # if local_rank == 0:
@@ -123,28 +116,24 @@ def fit_one_epoch(model_train, model, loss_history, optimizer, epoch, epoch_step
         if iteration >= epoch_step_val:
             break
 
-        images_up, images_down,labels_up = batch
+        images, labels = batch
         with torch.no_grad():
             if cuda:
-                images_up = images_up.cuda(local_rank)
-                images_down = images_down.cuda(local_rank)
+                images = images.cuda(local_rank)
+                labels = labels.cuda(local_rank)
 
-                labels_up = labels_up.cuda(local_rank)
-                # labels_down = labels_down.cuda(local_rank)
             optimizer.zero_grad()
-            outputs_up,outputs_down = model_train(images_up, images_down,labels_up, mode="train")
-            # outputs_down = model_train(images_down, labels_down, mode="train")
-            loss_up = nn.NLLLoss()(F.log_softmax(outputs_up, -1), labels_up)
-            loss_down = nn.NLLLoss()(F.log_softmax(outputs_down, -1), labels_up)
-            loss = loss_up+loss_down
+            outputs = model_train(images, labels, mode="train")
+            loss = nn.NLLLoss()(F.log_softmax(outputs, -1), labels)
 
-            # accuracy = torch.mean((torch.argmax(F.softmax(outputs, dim=-1), dim=-1) == labels).type(torch.FloatTensor))
+            accuracy = torch.mean((torch.argmax(F.softmax(outputs, dim=-1), dim=-1) == labels).type(torch.FloatTensor))
 
             val_total_loss += loss.item()
-            # val_total_accuracy += accuracy.item()
+            val_total_accuracy += accuracy.item()
 
         if local_rank == 0:
             pbar.set_postfix(**{'total_loss': val_total_loss / (iteration + 1),
+                                'accuracy': val_total_accuracy / (iteration + 1),
                                 'lr': get_lr(optimizer)})
             pbar.update(1)
 
@@ -156,15 +145,14 @@ def fit_one_epoch(model_train, model, loss_history, optimizer, epoch, epoch_step
 
         labels, distances = [], []
         pbar = tqdm(enumerate(test_loader),total=epoch_step_val, desc=f'Epoch {epoch + 1}/{Epoch}')
-        for batch_idx, (crop_img1_up, crop_img1_down, crop_img2_up, crop_img2_down, label) in pbar:
+        for batch_idx, (data_a, data_p, label) in pbar:
             with torch.no_grad():
-                crop_img1_up,crop_img1_down,crop_img2_up,crop_img2_down = crop_img1_up.type(torch.FloatTensor), crop_img1_down.type(torch.FloatTensor),crop_img2_up.type(torch.FloatTensor),crop_img2_down.type(torch.FloatTensor)
+                data_a, data_p = data_a.type(torch.FloatTensor), data_p.type(torch.FloatTensor)
                 if cuda:
-                    crop_img1_up, crop_img1_down, crop_img2_up,crop_img2_down= crop_img1_up.cuda(local_rank), crop_img1_down.cuda(local_rank),crop_img2_up.cuda(local_rank),crop_img2_down.cuda(local_rank)
+                    data_a, data_p = data_a.cuda(local_rank), data_p.cuda(local_rank)
 
-                out_crop_img1_up, out_crop_img1_down = model_train(crop_img1_up,crop_img1_down)
-                out_crop_img2_up, out_crop_img2_down  = model_train(crop_img2_up,crop_img2_down)
-                dists = torch.sqrt(torch.sum((out_crop_img1_up - out_crop_img2_up) ** 2, 1))+torch.sqrt(torch.sum((out_crop_img1_down - out_crop_img2_down) ** 2, 1))
+                out_a, out_p = model_train(data_a), model_train(data_p)
+                dists = torch.sqrt(torch.sum((out_a - out_p) ** 2, 1))
             distances.append(dists.data.cpu().numpy())
             labels.append(label.data.cpu().numpy())
 

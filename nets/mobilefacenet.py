@@ -1,3 +1,4 @@
+import torch
 from torch import nn
 from torch.nn import BatchNorm2d, Conv2d, Module, PReLU, Sequential
 
@@ -56,6 +57,37 @@ class Conv_block(Module):
         x = self.prelu(x)
         return x
 
+class after_feature(Module):
+    def __init__(self,embedding_size,kernel_size):
+        super(after_feature, self).__init__()
+        self.conv_45 = Residual_Block(128, 128, kernel=(3, 3), stride=(2, 2), padding=(1, 1), groups=512)
+        self.conv_5 = Residual(128, num_block=2, groups=256, kernel=(3, 3), stride=(1, 1), padding=(1, 1))
+
+        self.sep = nn.Conv2d(128, 512, kernel_size=1, bias=False)
+        self.sep_bn = nn.BatchNorm2d(512)
+        self.prelu = nn.PReLU(512)
+
+        self.GDC_dw= nn.Conv2d(512, 512, kernel_size=kernel_size, bias=False, groups=512)
+        self.GDC_bn = nn.BatchNorm2d(512)
+
+        self.features = nn.Conv2d(512, embedding_size, kernel_size=1, bias=False)
+        self.last_bn = nn.BatchNorm2d(embedding_size)
+
+    def forward(self, x):
+        x = self.conv_45(x)
+        x = self.conv_5(x)
+
+        x = self.sep(x)
+        x = self.sep_bn(x)
+        x = self.prelu(x)
+
+        x = self.GDC_dw(x)
+        x = self.GDC_bn(x)
+
+        x = self.features(x)
+        x = self.last_bn(x)
+        return x
+
 class MobileFaceNet(Module):
     def __init__(self, embedding_size):
         super(MobileFaceNet, self).__init__()
@@ -73,26 +105,13 @@ class MobileFaceNet(Module):
         self.conv_34    = Residual_Block(64, 128, kernel=(3, 3), stride=(2, 2), padding=(1, 1), groups=256)
         self.conv_4     = Residual(128, num_block=6, groups=256, kernel=(3, 3), stride=(1, 1), padding=(1, 1))
 
-        # 14,14,128 -> 7,7,128
-        self.conv_45    = Residual_Block(128, 128, kernel=(3, 3), stride=(2, 2), padding=(1, 1), groups=512)
-        self.conv_5     = Residual(128, num_block=2, groups=256, kernel=(3, 3), stride=(1, 1), padding=(1, 1))
-
-        self.sep        = nn.Conv2d(128, 512, kernel_size=1, bias=False)
-        self.sep_bn     = nn.BatchNorm2d(512)
-        self.prelu      = nn.PReLU(512)
-
-        self.GDC_dw     = nn.Conv2d(512, 512, kernel_size=7, bias=False, groups=512)
-        self.GDC_bn     = nn.BatchNorm2d(512)
-
-        self.features   = nn.Conv2d(512, embedding_size, kernel_size=1, bias=False)
-        self.last_bn    = nn.BatchNorm2d(embedding_size)
-  
+        self.after_feature_up = after_feature(embedding_size=64, kernel_size=(4,7))
+        self.after_feature_down = after_feature(embedding_size=64, kernel_size=(4, 7))
+        self.after_feature_g = after_feature(embedding_size=128, kernel_size=(7,7))
+        self.stage1 = nn.Sequential(self.conv1, self.conv2_dw, self.conv_23, self.conv_3, self.conv_34, self.conv_4)
         self._initialize_weights()
-        self.stage11 = nn.Sequential(self.conv1,self.conv2_dw, self.conv_23,self.conv_3,self.conv_34,self.conv_4,self.conv_45,self.conv_5)
-        self.stage12 = nn.Sequential(self.conv1, self.conv2_dw, self.conv_23, self.conv_3, self.conv_34, self.conv_4,
-                                     self.conv_45, self.conv_5)
-        self.stage21 = nn.Sequential(self.sep,self.sep_bn,self.prelu,self.GDC_dw,self.GDC_bn,self.features,self.last_bn)
-        self.stage22 = nn.Sequential(self.sep,self.sep_bn,self.prelu,self.GDC_dw,self.GDC_bn,self.features,self.last_bn)
+
+
     def _initialize_weights(self):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -107,33 +126,27 @@ class MobileFaceNet(Module):
                 if m.bias is not None:
                     m.bias.data.zero_()
                     
-    def forward(self, x1, x2):
-        x1 = self.stage11(x1)
-        x1 = self.stage21(x1)
-        x2 = self.stage12(x2)
-        x2 = self.stage22(x2)
-        # x = self.conv1(x)
-        # x = self.conv2_dw(x)
-        # x = self.conv_23(x)
-        # x = self.conv_3(x)
-        # x = self.conv_34(x)
-        # x = self.conv_4(x)
-        # x = self.conv_45(x)
-        # x = self.conv_5(x)
-        #
-        # x = self.sep(x)
-        # x = self.sep_bn(x)
-        # x = self.prelu(x)
-        #
-        # x = self.GDC_dw(x)
-        # x = self.GDC_bn(x)
-        #
-        # x = self.features(x)
-        # x = self.last_bn(x)
-        return x1, x2
+    def forward(self, x):
+        x = self.stage1(x)
+
+        x1, x2 = torch.split(x, 7, dim=2)
+
+        x1 = self.after_feature_up(x1)
+        x2 = self.after_feature_down(x2)
+        xg = self.after_feature_g(x)
+        x_side = torch.cat([x1,x2],1)
+        x = xg + x_side
+        return x
 
 
 def get_mbf(embedding_size, pretrained):
     if pretrained:
         raise ValueError("No pretrained model for mobilefacenet")
     return MobileFaceNet(embedding_size)
+
+if __name__ == "__main__":
+    model = get_mbf(embedding_size=128,pretrained=False)
+
+    x = torch.zeros([2,3,112,112])
+    out = model(x)
+    print("test")
